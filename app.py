@@ -5,8 +5,7 @@ import glob
 
 app = Flask(__name__)
 
-DOWNLOAD_FOLDER = "vid downloads"
-os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+DOWNLOAD_FOLDER = "/tmp/videos"
 
 @app.route("/", methods=["GET"])
 def index():
@@ -19,14 +18,17 @@ def download():
     if not url:
         return "No URL entered."
 
-    # Call your existing download function
-    youtube_to_mp4(url)
+    # Download video to /tmp
+    folder = youtube_to_mp4(url, DOWNLOAD_FOLDER)
 
-    # Get latest downloaded file
-    files = glob.glob(os.path.join(DOWNLOAD_FOLDER, "*"))
+    # Find newest file
+    files = glob.glob(os.path.join(folder, "*"))
+    if not files:
+        return "Error: No file downloaded."
+
     latest = max(files, key=os.path.getctime)
 
-    # Send file to browser
+    # Send file to user
     return send_file(latest, as_attachment=True)
 
 if __name__ == "__main__":
